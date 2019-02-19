@@ -4,6 +4,7 @@
 try:
 	from setuptools import setup
 	from setuptools.command.install import install
+	from setuptools.command.bdist_egg import bdist_egg
 except ImportError:
 	from distutils.core import setup
 	from distutils.command.install import install
@@ -17,6 +18,15 @@ class BuildwebInstall(install):
 		if os.system('npm run build') != 0:
 			raise Exception("Could not build web application")
 		install.run(self)
+
+class BuildwebEgg(bdist_egg):
+	def run(self):
+		print("generate web application")
+		if os.system('npm install') != 0:
+			raise Exception("Could not install npm packages")
+		if os.system('npm run build') != 0:
+			raise Exception("Could not build web application")
+		bdist_egg.run(self)
 
 setup(
 	name='Shelly',
@@ -32,6 +42,7 @@ setup(
 	package_dir={'':'src'},
 	cmdclass={  # Build web interface
 		'install': BuildwebInstall,
+		'bdist_egg': BuildwebEgg,
 	},
 	entry_points={ \
 		'telldus.startup': ['c = shelly:Shelly [cREQ]']
