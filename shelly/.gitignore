@@ -1,3 +1,5 @@
 Shelly-0.1.0.zip
 package/
-
+node_modules/
+package-lock.json
+src/shelly/htdocs/shelly.js
