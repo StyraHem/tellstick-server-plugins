@@ -38,6 +38,7 @@ setup(
 	extras_require = dict(cREQ = 'Base>=0.1\nTelldus>=0.1\nTelldusWeb>=0.1'),
 	package_data={'shelly' : [
 			'htdocs/img/*.jpg',
+			'htdocs/style/*.css',
 			'htdocs/*.js',
 	]}
 )

@@ -25,7 +25,8 @@ gulp.task('scripts', ['jsx', 'js'], function () {
         'react': 'empty:',
         'react-mdl': 'empty:',
         'react-router': 'empty:',
-        'websocket': 'empty:'
+        'websocket': 'empty:',
+        'telldus': 'empty:'
       },
       baseUrl: 'src/shelly/build',
       name: 'shelly/shelly'

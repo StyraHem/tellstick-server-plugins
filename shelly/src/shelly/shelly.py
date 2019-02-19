@@ -10,6 +10,7 @@ import json
 from pyShelly import pyShelly
 
 __name__ = 'Shelly'
+__version__ = '0.0.5'
 
 class ShellyDevice(Device):
 
@@ -19,6 +20,7 @@ class ShellyDevice(Device):
 		self.dev = dev
 		self.plugin=plugin
 		self.ipaddr = getattr(dev, 'ipaddr', '')
+		self.typeName = dev.typeName()
 		if self._name is None:
 			self.setName(dev.typeName() + " (" + dev.id + ")" )
 		dev.cb_updated = self._updated;
@@ -145,13 +147,13 @@ class Shelly(Plugin):
 						'up' : ( methods & Device.UP ) > 0,
 						'down' : ( methods & Device.DOWN ) > 0,
 						'stop' : ( methods & Device.STOP ) > 0
-					  }			
+					  }
 			if hasattr(d, 'dev'):
 				available = d.dev.available()				
 			dev = { 'id' : d.id(), 'localid' : d.localId(), 'name' : d.name(), 
 				'state' : d.state(), 'params' : d.params(), 'ipaddr' : getattr(d, 'ipaddr',''),
 				'available' : available, 'sensors' : d.sensorValues(),
-				'buttons' : buttons}
+				'buttons' : buttons, 'typeName':getattr(d, 'typeName','') }
 			devices.append(dev)
 		return {'devices': devices, 'ver' : self.pyShelly.version() }
 		
