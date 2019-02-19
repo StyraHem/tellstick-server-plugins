@@ -155,7 +155,7 @@ class Shelly(Plugin):
 				'available' : available, 'sensors' : d.sensorValues(),
 				'buttons' : buttons, 'typeName':getattr(d, 'typeName','') }
 			devices.append(dev)
-		return {'devices': devices, 'ver' : self.pyShelly.version() }
+		return {'devices': devices, 'pyShellyVer' : self.pyShelly.version(), 'ver' : __version__ }
 		
 	def refreshClient(self):
 		Server(self.context).webSocketSend('shelly', 'refresh', self._getData())

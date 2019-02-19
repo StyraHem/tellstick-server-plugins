@@ -14,7 +14,7 @@ define(
 	  	this.websocket.onMessage('shelly', 'refresh', (module, action, data) => this.setState(data));
 	  	fetch('/shelly/list')
 	  	  .then(response => response.json())
-	  	  .then(json => this.setState({'devices': json.devices, 'ver' : json.ver }))
+	  	  .then(json => this.setState({'devices': json.devices, 'ver' : json.ver, 'pyShellyVer' : json.pyShellyVer }))
 	  }
 	  componentWillUnmount() {
 	    this.websocket.onMessage('shelly', 'status', null);
@@ -50,13 +50,13 @@ define(
 	      	fetch('/shelly/rename?id=' + id + '&name=' + newName)
   	  }
 	  render() {
-	      const { devices, ver } = this.state;
+	      const { devices, ver, pyShellyVer } = this.state;
 	      return (
 	       <div className="shellyCanvas">	        
 	        <table>
 	        	<tr>
 	        		<td className="head"></td>
-	        		<td>pyShelly: {ver}</td>
+	        		<td>Version: {ver}<br/>pyShelly: {pyShellyVer}</td>
 	        	</tr>
 	        </table>
 	        {/*
