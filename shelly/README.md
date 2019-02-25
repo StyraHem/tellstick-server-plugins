@@ -27,14 +27,14 @@ function onInit()
 	rgb:command("rgb", 0x1000000 + 3000, "RGB.lua") --White 3000K
 	rgb.setWhite() -- switch to white mode
 	rgb.setWhite(6500) -- switch to white mode, 6500K
-	rgb.setWhite(3500, 255) -- switch to white mode, 3500K, full brightness
+	rgb.setWhite(3500, 255/2 ) -- switch to white mode, 3500K, half brightness
 	
 	--RGB mode
 	rgb:command("rgb", 0xFF0000, "RGB.lua") --Red
 	rgb:command("rgb", 0x00FF00) --Green
 	rgb:command("rgb", 0x0000FF, "RGB.lua") --Blue'
 	rgb:setRgb( 0xFF, 0, 0 ) -- Red
-	rgb:setRgb( 0, 255, 0 , 255 ) -- Green, full brightness
+	rgb:setRgb( 0, 255, 0 , 255/2 ) -- Green, half brightness
 	
 	--Effects
 	rgb:command("rgb", 0x2000000 + 0, "RGB.lua") --No effect
