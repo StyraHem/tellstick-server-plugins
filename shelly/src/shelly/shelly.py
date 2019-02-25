@@ -10,7 +10,7 @@ import json
 from pyShelly import pyShelly
 
 __name__ = 'Shelly'
-__version__ = '0.0.5'
+__version__ = '0.0.6'
 
 class ShellyDevice(Device):
 
@@ -50,7 +50,38 @@ class ShellyDevice(Device):
 	def isSensor(self):
 		return self.dev.isSensor
 
+	def turnOn(self):
+		self.dev.turnOn()
+
+	def turnOff(self):
+		self.dev.turnOff()
+
+	def up(self):
+		self.dev.up()
+
+	def down(self):
+		self.dev.down()
+
+	def stop(self):
+		self.dev.stop()
+
+	def setDim(self, value):
+		self.dev.dim(int(value/2.55))
+		
+	def setDim(self, value):
+		self.dev.dim(int(value/2.55))
+		
+	def setEffect(self, value):
+		self.dev.turnOn(effect=value)
+		
+	def setRgb(self, r, g, b, brightness=None):
+		self.dev.turnOn(rgb=[r, g, b], isModeWhite=False, brightness=brightness)
+		
+	def setWhite(self, temp=None, brightness=None):
+		self.dev.turnOn(isModeWhite=True, temp=temp, brightness=brightness)							
+		
 	def _command(self, action, value, success, failure, **__kwargs):
+	
 		if action == Device.TURNON and hasattr(self.dev, 'turnOn'):
 			self.dev.turnOn()
 		elif action == Device.TURNOFF and hasattr(self.dev, 'turnOff'):
@@ -63,6 +94,14 @@ class ShellyDevice(Device):
 			self.dev.stop()
 		elif action == Device.DIM:
 			self.dev.dim(int(value/2.55))
+		elif action == Device.RGB:
+			if value & 0x1000000:	#WhiteMode
+				self.dev.turnOn(isModeWhite=True, temp=value&0xFFFFFF)							
+			elif value & 0x2000000:	#Effect	
+				self.dev.turnOn(effect=value&0xFF)
+			else:
+				print("RGB", [(value>>16)&0xFF, (value>>8)&0xFF, value&0xFF])
+				self.dev.turnOn(rgb=[(value>>16)&0xFF, (value>>8)&0xFF, value&0xFF], isModeWhite=False)
 		else:
 			failure(Device.FAILED_STATUS_UNKNOWN)
 					
@@ -87,7 +126,7 @@ class ShellyDevice(Device):
 				self.plugin.refreshClient()			
 			if 'humidity' in self.dev.sensorValues:
 				self.setSensorValue( Device.HUMIDITY, self.dev.sensorValues['humidity'], Device.SCALE_HUMIDITY_PERCENT  )
-				self.plugin.refreshClient()			
+				self.plugin.refreshClient()
 
 	@staticmethod
 	def typeString():
@@ -141,6 +180,7 @@ class Shelly(Plugin):
 		for d in shellyDevices:
 			#ip = d.ipaddr if hasattr(d, 'ipaddr') else ''
 			available = False
+			rgb = None
 			methods = d.methods()
 			buttons = { 'on' : ( methods & Device.TURNON ) > 0,
 						'off' : ( methods & Device.TURNOFF ) > 0,
@@ -149,12 +189,16 @@ class Shelly(Plugin):
 						'stop' : ( methods & Device.STOP ) > 0
 					  }
 			if hasattr(d, 'dev'):
-				available = d.dev.available()				
+				dev = d.dev
+				available = d.dev.available()	
+				if hasattr(dev, 'rgb'):
+					rgb = '#' + ''.join('%02x'%v for v in dev.rgb)
 			dev = { 'id' : d.id(), 'localid' : d.localId(), 'name' : d.name(), 
 				'state' : d.state(), 'params' : d.params(), 'ipaddr' : getattr(d, 'ipaddr',''),
 				'available' : available, 'sensors' : d.sensorValues(),
-				'buttons' : buttons, 'typeName':getattr(d, 'typeName','') }
+				'buttons' : buttons, 'typeName':getattr(d, 'typeName',''), 'rgb':rgb }
 			devices.append(dev)
+		devices.sort(key=lambda x: x['name'])
 		return {'devices': devices, 'pyShellyVer' : self.pyShelly.version(), 'ver' : __version__ }
 		
 	def refreshClient(self):

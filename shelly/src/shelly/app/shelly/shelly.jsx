@@ -71,7 +71,7 @@ define(
 	      	  <tr><th></th><th>Name</th><th>Type</th><th>IP address</th><th></th><th></th></tr>
 	          {devices.map(dev =>
 	            <tr key={dev.id} className={!dev.available ? "unavailable" : "available"}>
-	              <td>
+	              <td style={{backgroundColor:dev.rgb}}>
 	              	{ dev.available &&
 	              		<img src={"/shelly/img/state_" + dev.state[0] + ".png"}></img>
 	              	}
