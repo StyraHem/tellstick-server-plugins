@@ -1,6 +1,7 @@
 # shelly
 Shelly plugin for Tellstick server (Telldus Net/ZNet)
 
+## Examples of comamnds you can run from Lua to controll your shelly RGB devices
 ```lua
 -- File: TestRGB.lua
 local deviceName = "RGB"    -- Name of your RGB device
