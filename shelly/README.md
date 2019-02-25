@@ -45,5 +45,5 @@ function onInit()
 	rgb:command("rgb", 0x2000000 + 6, "RGB.lua") --red/green flash
 	rgb:setEffect(0) --No effect
 	rgb:setEffect(6) --red/green flash
-end
+end 
 ```
