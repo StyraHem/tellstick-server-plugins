@@ -15,7 +15,8 @@ function onInit()
 		return
 	end
 
-  rgb:command("dim", 255, "RGB.lua") --Full brightness
+	--Dim
+	rgb:command("dim", 255, "RGB.lua") --Full brightness
 	rgb:command("dim", 5, "RGB.lua")	 --Low brightness
 	rgb:setDim(255) --Full brightness
 	rgb:setDim(5) --Low brightness
