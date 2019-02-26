@@ -11,6 +11,7 @@ Shelly plugin for Telldus Tellstick Net/ZNet (white box)
 - Shelly H&T
 - Shelly PLUG
 
+## Screen shots
 ![Screenshot](https://raw.githubusercontent.com/StyraHem/tellstick-server-plugins/master/shelly/img/screencapture1.png)
 
 ## Example of Lua comamnds
