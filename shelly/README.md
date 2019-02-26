@@ -1,7 +1,7 @@
 # shelly
 Shelly plugin for Tellstick server (Telldus Net/ZNet)
 
-[![Screenshot](https://raw.githubusercontent.com/StyraHem/tellstick-server-plugins/master/shelly/img/screencapture1.png)]
+![Screenshot](https://raw.githubusercontent.com/StyraHem/tellstick-server-plugins/master/shelly/img/screencapture1.png)
 
 ## Example of Lua comamnds to controll your shelly RGB devices
 ```lua
