@@ -1,6 +1,16 @@
 # shelly
 Shelly plugin for Tellstick server (Telldus Net/ZNet)
 
+## Supported devices
+- Shelly 1
+- Shelly 2
+- Shelly 4 PRO
+- Shelly RGBWW
+- Shelly LED (coming soon)
+- Shelly RGBW2 (coming soon)
+- Shelly H&T
+- Shelly PLUG
+
 ![Screenshot](https://raw.githubusercontent.com/StyraHem/tellstick-server-plugins/master/shelly/img/screencapture1.png)
 
 ## Example of Lua comamnds
@@ -22,7 +32,7 @@ function onInit()
 	device:turnon()
 end 
 ```
-### Shelly 1, Shelly 2, Shelly 4
+### Shelly 1, Shelly 2, Shelly 4, Shelly PLUG
 ```lua
 --On and off
 device:turnon()
