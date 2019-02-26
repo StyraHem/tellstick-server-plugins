@@ -66,10 +66,10 @@ class ShellyDevice(Device):
         self.dev.stop()
 
     def setDim(self, value):
-        self.dev.dim(int(value/2.55))
+        self.dev.setDimValue(int(value/2.55))
 
     def getDim(self):
-        return self.dev.brightness
+        return self.dev.getDimValue()
 
     def setEffect(self, value):
         self.dev.turnOn(effect=value)
@@ -93,7 +93,7 @@ class ShellyDevice(Device):
         elif action == Device.STOP and hasattr(self.dev, 'stop'):
             self.dev.stop()
         elif action == Device.DIM:
-            self.dev.dim(int(value/2.55))
+            self.dev.setDimValue(int(value/2.55))
         elif action == Device.RGB:
             if value & 0x1000000:    #WhiteMode
                 self.dev.turnOn(isModeWhite=True, temp=value&0xFFFFFF)
@@ -113,11 +113,13 @@ class ShellyDevice(Device):
             #               onlyUpdateIfChanged=True)
             newState = Device.TURNON if self.dev.state else Device.TURNOFF
             newStateValue = ''
-            if self.dev.state and hasattr(self.dev, 'brightness') and self.dev.brightness < 100:
+            if self.dev.state and hasattr(self.dev, 'getDimValue') and self.dev.getDimValue() < 100:
                 newState = Device.DIM
-                newStateValue = int(self.dev.brightness*2.55)
-                            
+                newStateValue = int(self.dev.getDimValue()*2.55)
+            if hasattr(self.dev, 'getDimValue'):
+                print("*****************************", newState, newStateValue, self._stateValue, self.dev.getDimValue())
             if self._state != newState or self._stateValue != newStateValue:
+                print("*****************************UPDATE")
                 self.setState(newState, newStateValue)
                 self.plugin.refreshClient()
         if hasattr(self.dev, 'sensorValues'):
