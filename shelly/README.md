@@ -30,7 +30,7 @@ device:turnoff()
 ```
 ### Shelly 2, roller mode
 ```lua
---On and off
+--Roller
 device:up()
 device:down()
 device:stop()
