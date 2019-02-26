@@ -24,13 +24,17 @@ end
 ```
 ### Shelly 1, Shelly 2, Shelly 4
 ```lua
---Switch
+--On and off
 device:turnon()
 device:turnoff()
 ```
 
 ### Shelly Bulb, Shelly RGBWW, Shelly RGBW2
 ```lua
+--On and off
+device:turnon()
+device:turnoff()
+
 --Dim
 device:command("dim", 255, "RGB.lua") --Full brightness
 device:command("dim", 5, "RGB.lua")	 --Low brightness
