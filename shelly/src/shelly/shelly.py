@@ -68,8 +68,8 @@ class ShellyDevice(Device):
     def setDim(self, value):
         self.dev.dim(int(value/2.55))
 
-    def setDim(self, value):
-        self.dev.dim(int(value/2.55))
+    def getDim(self):
+        return self.dev.brightness
 
     def setEffect(self, value):
         self.dev.turnOn(effect=value)
@@ -113,9 +113,10 @@ class ShellyDevice(Device):
             #               onlyUpdateIfChanged=True)
             newState = Device.TURNON if self.dev.state else Device.TURNOFF
             newStateValue = ''
-            if self.dev.state and hasattr(self.dev, 'stateValue') and self.dev.stateValue < 100:
+            if self.dev.state and hasattr(self.dev, 'brightness') and self.dev.brightness < 100:
                 newState = Device.DIM
-                newStateValue = int(self.dev.stateValue*2.55)
+                newStateValue = int(self.dev.brightness*2.55)
+                            
             if self._state != newState or self._stateValue != newStateValue:
                 self.setState(newState, newStateValue)
                 self.plugin.refreshClient()
