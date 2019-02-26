@@ -10,7 +10,7 @@ import json
 from pyShelly import pyShelly
 
 __name__ = 'Shelly'
-__version__ = '0.0.6'
+__version__ = '0.0.7'
 
 class ShellyDevice(Device):
 

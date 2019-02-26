@@ -30,7 +30,7 @@ class BuildwebEgg(bdist_egg):
 
 setup(
 	name='Shelly',
-	version='0.0.6',
+	version='0.0.7',
 	icon='shelly.png',
 	author='StyraHem / Tarra AB',
 	author_email='info@styrahem.se',
