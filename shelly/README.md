@@ -28,7 +28,13 @@ end
 device:turnon()
 device:turnoff()
 ```
-
+### Shelly 2, roller mode
+```lua
+--On and off
+device:up()
+device:down()
+device:stop()
+```
 ### Shelly Bulb, Shelly RGBWW, Shelly RGBW2
 ```lua
 --On and off
