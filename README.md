@@ -1,4 +1,4 @@
-# tellstick-server-plugins
+# StyraHem's tellstick-server-plugins
 Plugins for Tellstick server
 
 ## shelly
