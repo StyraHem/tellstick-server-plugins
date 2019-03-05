@@ -1,5 +1,5 @@
 # shelly plugin för Telldus Tellstick
-Shelly plugin for Telldus Tellstick Net/ZNet (white box)
+Shelly plugin for Telldus Tellstick Net/ZNet v1/v2 (white box)
 
 ## Supported devices
 - Shelly 1
