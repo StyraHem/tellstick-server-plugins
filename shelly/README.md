@@ -10,6 +10,8 @@ Shelly plugin for Telldus Tellstick Net/ZNet v1/v2 (white box)
 - Shelly RGBW2 (coming soon)
 - Shelly H&T
 - Shelly PLUG
+- Shelly PLUG S (not tested)
+- Shelly 2.5 (not tested)
 
 ## Installation
 [Se wiki pages (only swedish)](https://github.com/StyraHem/tellstick-server-plugins/wiki/Shelly-plugin-f%C3%B6r-Telldus-Tellstick)
