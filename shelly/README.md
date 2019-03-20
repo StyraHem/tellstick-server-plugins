@@ -1,5 +1,5 @@
 # shelly plugin för Telldus Tellstick
-Shelly plugin for Telldus Tellstick Net/ZNet (white box)
+Shelly plugin for Telldus Tellstick Net/ZNet v1/v2 (white box)
 
 ## Supported devices
 - Shelly 1
@@ -10,6 +10,9 @@ Shelly plugin for Telldus Tellstick Net/ZNet (white box)
 - Shelly RGBW2 (coming soon)
 - Shelly H&T
 - Shelly PLUG
+
+## Installation
+[Se wiki pages (only swedish)](https://github.com/StyraHem/tellstick-server-plugins/wiki/Shelly-plugin-f%C3%B6r-Telldus-Tellstick)
 
 ## Screen shots
 ![Screenshot](https://raw.githubusercontent.com/StyraHem/tellstick-server-plugins/master/shelly/img/screencapture1.png)
