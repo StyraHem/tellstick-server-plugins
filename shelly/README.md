@@ -6,10 +6,10 @@ Shelly plugin for Telldus Tellstick Net/ZNet v1/v2 (white box)
 - Shelly 2
 - Shelly 4 PRO
 - Shelly RGBWW
-- Shelly LED (coming soon)
-- Shelly RGBW2 (coming soon)
+- Shelly RGBW2
 - Shelly H&T
 - Shelly PLUG
+- Shelly 2LED (not tested)
 - Shelly PLUG S (not tested)
 - Shelly 2.5 (not tested)
 
