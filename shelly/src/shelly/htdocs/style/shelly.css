@@ -1,50 +1,68 @@
 .shellyCanvas
 {
-	padding: 10px 10px 200px 10px;
-	background-color: #f5f5f5;
-}
-.mdl-layout__content:has( .shellyCanvas )
-{
-	background-color: red;
+    padding: 10px 10px 200px 10px;
+    background-color: #f5f5f5;
 }
 .shellyCanvas .unavailable 
 {
-	color: gray;
+    color: gray;
 }
 .shellyCanvas .hide *
 {
-	visibility: hidden;
+    visibility: hidden;
 }
 .shellyCanvas .head
 {
-	width: 500px;
-	height: 120px;
-	background: url(../img/shelly.png) no-repeat;
+    width: 500px;
+    height: 120px;
+    background: url(../img/shelly.png) no-repeat;
     background-size: 70%;
 }
 .shellyCanvas .list
 {
-	empty-cells: show;
-	border-collapse: collapse;
-	border: 1px solid gray
+    empty-cells: show;
+    border-collapse: collapse;
+    border: 1px solid gray
 }
 
 .shellyCanvas .list tr
 {
-	border: 1px solid gray
+    border: 1px solid gray
 }
 
 .shellyCanvas .list td
 {
-	padding: 2px 10px;
+    padding: 2px 10px;
 }
 
 .shellyCanvas .list th
 {
-	text-align: left;
+    text-align: left;
 }
 
 .shellyCanvas .list tr:nth-child(even) 
 {
-	background-color: #f0f0f5;
+    background-color: #f0f0f5;
 }
+
+.shellyCanvas .rgb {
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
+    border: 1px gray solid;
+    display: inline-block;
+    vertical-align:middle;
+    margin: 0px 2px;
+}
+.shellyCanvas .values {
+    display: inline-block;
+    vertical-align:middle;
+}
+.shellyCanvas .value {    
+    padding: 2px 4px;
+    margin: 0px 2px;
+    border: solid gray 1px;
+    font-size: 10 px;
+    border-radius: 5px;
+}
+    

@@ -1,4 +1,4 @@
-Shelly-0.1.0.zip
+*.zip
 package/
 node_modules/
 package-lock.json
