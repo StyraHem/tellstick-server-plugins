@@ -1,4 +1,4 @@
-# shelly plugin för Telldus Tellstick
+# Shelly plugin för Telldus Tellstick
 Shelly plugin for Telldus Tellstick Net/ZNet v1/v2 (white box)
 
 Shelly devices will show as a device in Telldus Live and mobile app. It
@@ -14,6 +14,7 @@ support on/off, dimming, rgb, sensors (power, temp etc)
 - Shelly LED
 - Shelly RGBW2
 - Shelly H&T
+- Shelly FLOOD
 - Shelly PLUG
 - Shelly PLUG S
 - Shelly DIMMER
