@@ -1,7 +1,6 @@
 .shellyCanvas
 {
-    padding: 10px 10px 200px 10px;
-    background-color: #f5f5f5;
+    padding: 20px 10px 100px 20px;
 }
 .shellyCanvas .unavailable 
 {
@@ -22,7 +21,7 @@
 {
     empty-cells: show;
     border-collapse: collapse;
-    border: 1px solid gray
+    border: 1px solid gray;
 }
 
 .shellyCanvas .list tr
@@ -38,6 +37,7 @@
 .shellyCanvas .list th
 {
     text-align: left;
+    padding: 5px 10px;
 }
 
 .shellyCanvas .list tr:nth-child(even) 
@@ -67,4 +67,13 @@
 }
 #picker {
     position: absolute;
+}
+.shellyCanvas .info-table {
+    border: 1px solid gray;
+    border-radius: 5px;
+    padding: 5px;
+}
+.shellyCanvas .info-table TD {
+    padding: 3px;
+    color: gray;
 }

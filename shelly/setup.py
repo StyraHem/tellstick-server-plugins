@@ -9,6 +9,22 @@ except ImportError:
     from distutils.core import setup
     from distutils.command.install import install
 import os
+import codecs
+import re
+here = os.path.abspath(os.path.dirname(__file__))
+
+def read(*parts):
+    with codecs.open(os.path.join(here, *parts), 'r') as fp:
+        return fp.read()
+
+def find_version(*file_paths):
+    version_file = read(*file_paths)
+    version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]",
+                              version_file, re.M)
+    if version_match:
+        return version_match.group(1)
+    raise RuntimeError("Unable to find version string.")
+
 
 class BuildwebInstall(install):
     def run(self):
@@ -30,7 +46,8 @@ class BuildwebEgg(bdist_egg):
 
 setup(
     name='Shelly',
-    version='0.0.21',
+    #version='0.1.0b2',
+    version=find_version("src", "shelly", "shelly.py"),
     icon='shelly.png',
     author='Shelly',
     author_email='info@styrahem.se',

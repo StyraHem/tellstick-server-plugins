@@ -17,7 +17,10 @@ define(
         });
         fetch('/shelly/list')
           .then(response => response.json())
-          .then(json => this.setState({'devices': json.devices, 'ver' : json.ver, 'pyShellyVer' : json.pyShellyVer }))
+          .then(json => this.setState({'devices': json.devices,
+                                       'ver' : json.ver,
+                                       'id': json.id,
+                                       'pyShellyVer' : json.pyShellyVer }))
       }
       componentWillUnmount() {
         this.websocket.onMessage('shelly', 'status', null);
@@ -50,11 +53,12 @@ define(
         this.selectedId = id;
         var pos = this.getPos(e.target);
         
-        var canvas = document.getElementById('picker');
-        canvas.style.display = "block";
-        canvas.style.top = pos[1]-50;
-        canvas.style.left = pos[0]-300;
-        var ctx = canvas.getContext('2d');       
+        var picker = document.getElementById('picker');
+        var canvas = document.getElementsByClassName("ShellyCanvas")[0].parentElement
+        picker.style.display = "block";
+        picker.style.top = Math.min(canvas.offsetHeight + canvas.scrollTop - 300, pos[1]-50+canvas.scrollTop);        
+        picker.style.left = Math.max(pos[0]-300, 10);
+        var ctx = picker.getContext('2d');
 
         var image = new Image();        
         image.onload = function () {
@@ -115,31 +119,35 @@ define(
           if (newName != null)
             fetch('/shelly/rename?id=' + id + '&name=' + newName)
       }
-      renderValues(dev) {
+      renderValues(dev) { 
         var values = {};
-        if (dev.sensors['watt'])
-            values['watt']=dev.sensors['watt'] + "W";
-        if (dev.sensors['temp'])
-            values['temp']=dev.sensors['temp'] + "\u00B0C";
-        if (dev.sensors['hum'])
-            values['hum']=dev.sensors['hum'] + "%";
-        if (dev.mode!="") {
-            if (dev.state[1])
-                values['brght']=Math.round(dev.state[1]/2.55) + "%";
-            else if (dev.state[0]!=2)
-                values['brght']="100%";
+        sensors = dev.sensors || {}
+        if (sensors['consumption'])
+            values['consumption']=sensors['consumption'] + "W";
+        if (sensors['temp'])
+            values['temp']=sensors['temp'] + "\u00B0C";
+        if (sensors['hum'])
+            values['hum']=sensors['hum'] + "%";
+        if (dev.brightness) {
+            values['brght']=Math.round(dev.brightness) + "%";
         }
         return <div className="values">{Object.entries(values)
                      .map(([key, value])=><span key={key} className="value">{value}</span>)}</div>;
       }
       render() {
-          const { devices, ver, pyShellyVer } = this.state;
+          const { devices, ver, pyShellyVer, id } = this.state;
           return (           
            <div className="shellyCanvas">  
             <table><tbody>
                 <tr>
                     <td className="head"></td>
-                    <td>Version: {ver}<br/>pyShelly: {pyShellyVer}</td>
+                    <td>
+                      <table className="info-table"><tbody>
+                        <tr><td>Version:</td><td>{ver}</td></tr>
+                        <tr><td>pyShelly:</td><td>{pyShellyVer}</td></tr>
+                        <tr><td>Telldus id:</td><td>{id}</td></tr>
+                      </tbody></table>
+                    </td>
                 </tr>
             </tbody></table>
             {/*
@@ -155,20 +163,20 @@ define(
               {devices.map(dev =>
                 <tr key={dev.id} className={!dev.available ? "unavailable" : "available"}>                  
                   <td>
-                    { dev.available && dev.isDevice &&
-                        <img src={"/shelly/img/state_" + dev.state[0] + ".png"}></img>
+                    { dev.available && dev.isDevice &&                        
+                        <img src={"/shelly/img/state_" + (dev.state==2?2:1) + ".png"}></img>
                     }
-                  </td>
-                  <td>
-                    { dev.available && dev.rgb &&
+                    { dev.available && dev.rgb && dev.state==16 &&
                         <div onClick={(e) => this.pickColor(dev.id, e)}
                             className="rgb" style={{backgroundColor:dev.rgb}}></div>
                     }
+                  </td>
+                  <td>
                     { this.renderValues(dev) }
                   </td>
                   <td>{dev.name}</td>
-                  <td>{dev.typeName}</td>
-                  <td><a href={"http://" + dev.ipaddr} target="_blank">{dev.ipaddr}</a></td>
+                  <td>{dev.params.typeName}</td>
+                  <td><a href={"http://" + dev.params.ipAddr} target="_blank">{dev.params.ipAddr}</a></td>
                   <td className={!dev.available ? "hide" : ""}>
                     { dev.buttons.on &&
                     <ReactMDL.Button onClick={(e) => this.sendCmd(dev.id, "turnon", e)}>Turn on</ReactMDL.Button>}

@@ -1,6 +1,5 @@
 {
   "name": "shelly",
-  "version": "0.0.21",
   "description": "Shelly plugin",
   "scripts": {
     "build": "gulp",

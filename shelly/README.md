@@ -1,15 +1,23 @@
 # shelly plugin för Telldus Tellstick
 Shelly plugin for Telldus Tellstick Net/ZNet v1/v2 (white box)
 
+Shelly devices will show as a device in Telldus Live and mobile app. It
+support on/off, dimming, rgb, sensors (power, temp etc)
+
 ## Supported devices
 - Shelly 1
+- Shelly 1PM
 - Shelly 2
+- Shelly 2.5
 - Shelly 4 PRO
 - Shelly RGBWW
-- Shelly LED (coming soon)
-- Shelly RGBW2 (coming soon)
+- Shelly LED
+- Shelly RGBW2
 - Shelly H&T
 - Shelly PLUG
+- Shelly PLUG S
+- Shelly DIMMER
+- Shelly DIMMER/SL
 
 ## Installation
 [Se wiki pages (only swedish)](https://github.com/StyraHem/tellstick-server-plugins/wiki/Shelly-plugin-f%C3%B6r-Telldus-Tellstick)
