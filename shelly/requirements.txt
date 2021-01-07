@@ -1,1 +1,1 @@
-pyShelly==0.1.4
+pyShelly==0.2.13

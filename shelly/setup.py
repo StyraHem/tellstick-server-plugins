@@ -69,5 +69,6 @@ setup(
             'htdocs/img/*.png',
             'htdocs/style/*.css',
             'htdocs/*.js',
+            'pyShelly/*.*',
     ]}
 )

@@ -3,3 +3,4 @@ package/
 node_modules/
 package-lock.json
 src/shelly/htdocs/shelly.js
+src/shelly/pyShelly

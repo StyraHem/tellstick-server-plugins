@@ -1,7 +1,8 @@
 define(
-  ['react', 'react-mdl', 'react-router', 'websocket','telldus'],
-  function(React, ReactMDL, ReactRouter, WebSocket, Telldus) {
+  ['react', 'react-mdl', 'react-router', 'websocket','telldus','shelly/config'],
+  function(React, ReactMDL, ReactRouter, WebSocket, Telldus, ShellyConfig) {
   
+    Telldus.loadCSS('/pluginloader/plugins.css');
     Telldus.loadCSS('/shelly/style/shelly.css');
     
     class ShellyApp extends React.Component {
@@ -119,6 +120,10 @@ define(
           if (newName != null)
             fetch('/shelly/rename?id=' + id + '&name=' + newName)
       }
+      configure(e) { 
+        e.preventDefault();
+        this.refs.configDlg.open()
+      }
       renderValues(dev) { 
         var values = {};
         sensors = dev.sensors || {}
@@ -143,9 +148,9 @@ define(
                     <td className="head"></td>
                     <td>
                       <table className="info-table"><tbody>
-                        <tr><td>Version:</td><td>{ver}</td></tr>
-                        <tr><td>pyShelly:</td><td>{pyShellyVer}</td></tr>
+                        <tr><td>Version:</td><td>{ver} (pyShelly: {pyShellyVer})</td></tr>
                         <tr><td>Telldus id:</td><td>{id}</td></tr>
+                        <tr><td>Cloud API:</td><td><a onClick={(e)=>this.configure(e)}>Configure</a></td></tr>
                       </tbody></table>
                     </td>
                 </tr>
@@ -159,7 +164,7 @@ define(
             */}
             { devices &&
             <table className="list"><tbody>
-              <tr><th></th><th></th><th>Name</th><th>Type</th><th>IP address</th><th></th><th></th></tr>
+              <tr><th></th><th></th><th>Name</th><th>IP address</th><th></th><th></th><th>Upgrade</th></tr>
               {devices.map(dev =>
                 <tr key={dev.id} className={!dev.available ? "unavailable" : "available"}>                  
                   <td>
@@ -174,29 +179,49 @@ define(
                   <td>
                     { this.renderValues(dev) }
                   </td>
-                  <td>{dev.name}</td>
-                  <td>{dev.params.typeName}</td>
+                  <td>
+                    <div>{dev.name}</div>
+                    <div className="type_name">
+                      {dev.params.typeName} - {dev.params.firmwareVersion}
+                    </div></td>                  
                   <td><a href={"http://" + dev.params.ipAddr} target="_blank">{dev.params.ipAddr}</a></td>
-                  <td className={!dev.available ? "hide" : ""}>
+                  <td className={"button_row " + (!dev.available ? "hide" : "")}>
                     { dev.buttons.on &&
-                    <ReactMDL.Button onClick={(e) => this.sendCmd(dev.id, "turnon", e)}>Turn on</ReactMDL.Button>}
+                    <ReactMDL.Button onClick={(e) => this.sendCmd(dev.id, "turnon", e)}>
+                      <img src={"/shelly/img/btn_action_1.png"}></img>
+                    </ReactMDL.Button>}
                     { dev.buttons.off &&
-                    <ReactMDL.Button onClick={(e) => this.sendCmd(dev.id, "turnoff", e)}>Turn off</ReactMDL.Button>}
+                    <ReactMDL.Button onClick={(e) => this.sendCmd(dev.id, "turnoff", e)}>
+                      <img src={"/shelly/img/btn_action_2.png"}></img>
+                    </ReactMDL.Button>}
                     { dev.buttons.up &&
-                    <ReactMDL.Button onClick={(e) => this.sendCmd(dev.id, "up", e)}>Up</ReactMDL.Button>}
+                    <ReactMDL.Button onClick={(e) => this.sendCmd(dev.id, "up", e)}>
+                      <img src={"/shelly/img/btn_action_128.png"}></img>
+                    </ReactMDL.Button>}
                     { dev.buttons.down &&
-                    <ReactMDL.Button onClick={(e) => this.sendCmd(dev.id, "down", e)}>Down</ReactMDL.Button>}
+                    <ReactMDL.Button onClick={(e) => this.sendCmd(dev.id, "down", e)}>
+                      <img src={"/shelly/img/btn_action_256.png"}></img>
+                    </ReactMDL.Button>}
                     { dev.buttons.stop &&
-                    <ReactMDL.Button onClick={(e) => this.sendCmd(dev.id, "stop", e)}>Stop</ReactMDL.Button>}
+                    <ReactMDL.Button onClick={(e) => this.sendCmd(dev.id, "stop", e)}>
+                      <img src={"/shelly/img/btn_action_512.png"}></img>
+                    </ReactMDL.Button>}                    
                     </td>
                    <td>
                     <ReactMDL.Button onClick={(e) => this.rename(dev.id, dev.name, e)}>Rename</ReactMDL.Button>
+                  </td>
+                  <td>                    
+                    {dev.buttons.firmware &&
+                    <ReactMDL.Button title="Click to upgrade to latest firmware" onClick={(e) => this.sendCmd(dev.id, "firmware_update", e)}>
+                      {dev.params.latestFwVersion}
+                    </ReactMDL.Button>}
                   </td>
                 </tr>
               )}
             </tbody></table>
             }                
             <canvas id="picker" width="300" height="300" onClick={(e) => this.selectColor(e)}></canvas>
+            <ShellyConfig ref="configDlg"/>
            </div>
           );
       }

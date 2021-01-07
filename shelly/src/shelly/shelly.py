@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from base import Application, Plugin, implements, Settings
+from base import (Application, Plugin, implements, Settings)
+from datetime import timedelta 
 from threading import Thread
 from telldus import DeviceManager, Device
 from telldus.web import IWebReactHandler
@@ -14,12 +15,15 @@ from pyShelly import pyShelly
 import threading
 
 __name__ = 'Shelly'
-__version__ = '0.1.0b1'
+__version__ = '0.2.0b7'
 
-PING_INTERVAL = 60
-LOG_LEVEL = 20
+PING_INTERVAL = 3600
+LOG_LEVEL = 100
 
-logger = logging.getLogger('pyShelly')
+LOGGER = logging.getLogger('pyShelly')
+
+CONFIG = "Shelly.config"
+
 
 class ShellyDevice(Device):
 
@@ -29,9 +33,16 @@ class ShellyDevice(Device):
         self.dev = dev
         self.plugin = plugin
         self.ip_addr = getattr(dev, 'ip_addr', '')
-        self.type_name = dev.type_name()# + " " + dev.device_type
-        if self._name is None:
-            self.setName(dev.type_name() + " (" + dev.id + ")")
+        self.device_type = getattr(dev, 'device_type', '')
+        self.device_sub_type = getattr(dev, 'device_sub_type', '')
+        self.firmware_version = None
+        self.latest_fw_version = None
+        self.has_firmware_update = None
+        self.type_name = dev.type_name()# + " " + dev.device_type        
+        self.local_name = None
+        self._lastState = None
+        self._lastSensorValue = None
+        self.update_name()
         dev.cb_updated.append( self._updated )
         self._updated(self.dev)
 
@@ -64,11 +75,11 @@ class ShellyDevice(Device):
         return self.dev.is_sensor
  
     def turnOn(self):
-        logger.debug("TURN ON!!")
+        LOGGER.debug("TURN ON!!")
         self.dev.turn_on()
 
     def turnOff(self):
-        logger.debug("TURN OFF!!")
+        LOGGER.debug("TURN OFF!!")
         self.dev.turn_off()
 
     def up(self):
@@ -81,28 +92,26 @@ class ShellyDevice(Device):
         self.dev.stop()
 
     def setDim(self, value):
-        logger.debug("set effect")
+        LOGGER.debug("set effect")
         self.dev.set_dim_value(int(value/2.55))
 
     def getDim(self):
         return self.dev.get_dim_value()
 
     def setEffect(self, value):
-        logger.debug("set effect")
+        LOGGER.debug("set effect")
         self.dev.turn_on(effect=value)
 
     def setRgb(self, r, g, b, brightness=None):
-        logger.debug("set rgb")
+        LOGGER.debug("set rgb")
         self.dev.turn_on(rgb=[r, g, b], mode='color', brightness=brightness)
 
     def setWhite(self, temp=None, brightness=None):
-        logger.debug("set white")
+        LOGGER.debug("set white")
         self.dev.turn_on(mode='white', temp=temp, brightness=brightness)
 
     def _command(self, action, value, success, failure, **__kwargs):        
         if action == Device.TURNON and hasattr(self.dev, 'turn_on'):
-            print("TURN ON-----------------------------------")
-            print(value)                    
             if hasattr(self.dev, 'set_dim_value'):
                 self.dev.turn_on(brightness=100)
             else:
@@ -123,8 +132,7 @@ class ShellyDevice(Device):
             elif value & 0x2000000:    #Effect
                 self.dev.turn_on(effect=value&0xFF)
             else:
-                logger.debug("RGB %s", [(value>>16)&0xFF, 
-                             (value>>8)&0xFF, value&0xFF])
+                LOGGER.debug("RGB %s", [(value>>16)&0xFF, (value>>8)&0xFF, value&0xFF])
                 self.dev.turn_on(
                     rgb=[(value>>16)&0xFF, (value>>8)&0xFF, value&0xFF],
                     mode='color')
@@ -132,55 +140,99 @@ class ShellyDevice(Device):
             failure(Device.FAILED_STATUS_UNKNOWN)
         success()
 
+    def _setState(self, state, value=None):        
+        self.setState(state, value, onlyUpdateIfChanged=True)
+    
+    def _setSensorValue(self, values, valueType, value, scale):        
+        values.append({'type': valueType, 'value':value, 'scale': scale})
+
+    def update_name(self):
+        name = self.local_name or self.dev.friendly_name()
+        if self._name != name:
+            self.setName(name)
+            self.plugin.refreshClient()
+
     def _updated(self, _device):
+        sensorValues = []
+        refreshClient = False
+        _lastUpdated = self.lastUpdated
+
         if hasattr(self.dev, 'state'):
-            #Not implemented yet in ZNet
-            #self.setState(Device.TURNON if self.dev.state else Device.TURNOFF,
-            #               onlyUpdateIfChanged=True)
             newState = Device.TURNON if self.dev.state else Device.TURNOFF
-            newStateValue = None
             if self.dev.state  \
                     and hasattr(self.dev, 'rgb') and self.dev.rgb is not None:
                 rgb = self.dev.rgb
                 rgb_value = (rgb[0]<<16) | (rgb[1]<<8) | rgb[2]
-                self.setState(Device.RGB, rgb_value)
-                self.setState(Device.DIM, int(self.dev.get_dim_value()*2.55))
-                self.plugin.refreshClient()
+                self._setState(Device.RGB, rgb_value)
+                self._setState(Device.DIM, int(self.dev.get_dim_value()*2.55))
+                #self.plugin.refreshClient()
             elif self.dev.state and hasattr(self.dev, 'get_dim_value') \
                               and self.dev.get_dim_value() < 100:
-                self.setState(Device.DIM, int(self.dev.get_dim_value()*2.55))
-                self.plugin.refreshClient()
-            elif self._state != newState or (self.stateValue() if not hasattr(self, "_stateValue") else self._stateValue) != newStateValue:
-                self.setState(newState, newStateValue)
-                self.plugin.refreshClient()
-        if hasattr(self.dev, 'sensor_values') \
-           and self.dev.sensor_values is not None:
-            if 'consumption' in self.dev.sensor_values:
-                if self.dev.sensor_values['consumption'] is not None: #temp fix
-                    self.setSensorValue(Device.WATT, 
-                                        self.dev.sensor_values['consumption'],
+                self._setState(Device.DIM, int(self.dev.get_dim_value()*2.55))
+                #self.plugin.refreshClient()
+            elif self.device_type == "POWERMETER":
+                self._setSensorValue(sensorValues, Device.POWER,
+                                     round(self.dev.state,1),
+                                     Device.SCALE_POWER_WATT)
+            elif self.device_type == "SENSOR":
+                if self.device_sub_type == "temperature":
+                    self._setSensorValue(sensorValues, Device.TEMPERATURE,
+                                     round(self.dev.state,1),
+                                     Device.SCALE_TEMPERATURE_CELCIUS)
+                if self.device_sub_type == "voltage":
+                    self._setSensorValue(sensorValues, Device.POWER,
+                                     round(self.dev.state,1),
+                                     Device.SCALE_POWER_VOLT)
+            elif self._state != newState: #or (self.stateValue() if not hasattr(self, "_stateValue") else self._stateValue) != newStateValue:
+                self._setState(newState)
+                #self.plugin.refreshClient()
+        if self.lastUpdated != _lastUpdated:
+            refreshClient = True
+        self.ip_addr = getattr(self.dev, 'ip_addr', '')
+        self.update_name()
+        if hasattr(self.dev, 'info_values') \
+           and self.dev.info_values is not None:
+            iv = self.dev.info_values                       
+            if 'current_consumption' in iv:
+                if iv['current_consumption'] is not None: #temp fix
+                    self._setSensorValue(sensorValues, Device.POWER, 
+                                        round(iv['current_consumption'],1),
                                         Device.SCALE_POWER_WATT)
-                self.plugin.refreshClient()
-            if 'temperature' in self.dev.sensor_values:
-                self.setSensorValue(Device.TEMPERATURE,
-                                    self.dev.sensor_values['temperature'],
-                                    Device.SCALE_TEMPERATURE_CELCIUS)
-                self.plugin.refreshClient()
-            if 'humidity' in self.dev.sensor_values:
-                self.setSensorValue(Device.HUMIDITY,
-                                    self.dev.sensor_values['humidity'],
-                                    Device.SCALE_HUMIDITY_PERCENT)
-                self.plugin.refreshClient()
+            if 'humidity' in iv:
+                 self._setSensorValue(sensorValues, Device.HUMIDITY,
+                                     round(iv['humidity']),
+                                     Device.SCALE_HUMIDITY_PERCENT)
+            if 'temperature' in iv:
+                 self._setSensorValue(sensorValues, Device.TEMPERATURE,
+                                     round(iv['temperature'],1),
+                                     Device.SCALE_TEMPERATURE_CELCIUS)
+        if sensorValues != self._lastSensorValue:
+            self._lastSensorValue = sensorValues
+            refreshClient = True            
+            self.setSensorValues(sensorValues)
+        if self.dev.block and hasattr(self.dev.block, 'info_values') \
+           and self.dev.block.info_values is not None:
+            iv = self.dev.block.info_values
+            self.firmware_version = iv.get("firmware_version", "")
+            self.has_firmware_update = iv.get("has_firmware_update", "")
+            self.latest_fw_version = iv.get("latest_fw_version", "") 
+        if refreshClient:
+            self.plugin.refreshClient()
 
     def params(self):
         return { 
             'ipAddr' : self.ip_addr,
-            'typeName' : self.type_name
+            'typeName' : self.type_name,
+            'deviceType' : self.device_type,
+            'firmwareVersion' : self.firmware_version,
+            'latestFwVersion' : self.latest_fw_version,
+            'hasFirmwareUpdate' : self.has_firmware_update,
+            'localName': self.local_name
         }
 
-    #def setParams(self, params):
-        #self.ip_addr = params.get('ipAddr') + '?'
-        #self.type_name = params.get('typeName')
+    def setParams(self, params):
+        self.local_name = params.get('localName')
+        self.firmware_version = params.get('firmwareVersion')
 
     @staticmethod
     def typeString():
@@ -191,6 +243,7 @@ class Shelly(Plugin):
     implements(IWebRequestHandler)
 
     def __init__(self):
+        self.last_sent_data = None
         self.stop_ping_loop = threading.Event()
 
         self.deviceManager = DeviceManager(self.context)
@@ -198,14 +251,14 @@ class Shelly(Plugin):
         Application().registerShutdown(self.shutdown)
 
         settings = Settings('tellduslive.config')
-        self.uuid = settings['uuid']
+        self.uuid = settings['uuid']       
 
         self.logHandler = ShellyLogger(self.uuid)
-        logger.addHandler(self.logHandler)
+        LOGGER.addHandler(self.logHandler)
 
         self.setupPing()
 
-        logger.info('Init Shelly ' + __version__)
+        LOGGER.info('Init Shelly ' + __version__)
         self._initPyShelly()
 
     def setupPing(self):
@@ -222,21 +275,63 @@ class Shelly(Plugin):
         self.ping_thread.daemon = True
         self.ping_thread.start()
 
+    def _read_settings(self):
+        settings = Settings(CONFIG)
+        pys = self.pyShelly
+        pys.set_cloud_settings(settings["cloud_server"], settings["cloud_auth_key"])
+        pys.update_status_interval = timedelta(seconds=30)
+        pys.only_device_id = settings["only_device_id"]
+        pys.mdns_enabled = False #settings.get('mdns', True)
+
     def _initPyShelly(self):
         try:
             self.pyShelly.close()
         except:
             pass
-        self.pyShelly = pyShelly()
-        self.pyShelly.igmpFixEnabled = True    #Enable IGMP fix for ZNet
-        self.pyShelly.cb_device_added.append(self._device_added)
-        self.pyShelly.open()
-        self.pyShelly.discover()
+        pys = self.pyShelly = pyShelly()
+        pys.igmpFixEnabled = True    #Enable IGMP fix for ZNet
+        pys.cb_device_added.append(self._device_added)
+        pys.update_status_interval = timedelta(seconds=30)
+
+        self._read_settings()  
+        ######
+        # pys.cb_block_added.append(self._block_added)
+        # pys.cb_device_added.append(self._device_added)
+        # pys.cb_device_removed.append(self._device_removed)
+        pys.cb_save_cache = self._save_cache
+        pys.cb_load_cache = self._load_cache
+        # pys.username = conf.get(CONF_USERNAME)
+        # pys.password = conf.get(CONF_PASSWORD)
+        # pys.cloud_auth_key = conf.get(CONF_CLOUD_AUTH_KEY)
+        # pys.cloud_server = conf.get(CONF_CLOUD_SERVER)
+        # if zeroconf_async_get_instance:
+        #     pys.zeroconf = await zeroconf_async_get_instance(self.hass)
+        # tmpl_name = conf.get(CONF_TMPL_NAME)
+        # if tmpl_name:
+        #     pys.tmpl_name = tmpl_name
+        # if additional_info:
+        #     pys.update_status_interval = timedelta(seconds=update_interval)
+        
+        # if pys.only_device_id:
+        #     pys.only_device_id = pys.only_device_id.upper()
+        # pys.igmp_fix_enabled = conf.get(CONF_IGMPFIX)
+        # pys.mdns_enabled = conf.get(CONF_MDNS)
+        ###
+        pys.start()
+        pys.discover()
+
+    def _save_cache(self, name, data):
+        settings = Settings('Shelly.cache')
+        settings[name] = data
+
+    def _load_cache(self, name):
+        settings = Settings('Shelly.cache')
+        return json.loads(settings[name])
 
     def ping(self):
         try:
             headers = {"Content-type": "application/x-www-form-urlencoded",
-                       "Accept": "text/plain"}
+                       "Accept": "text/plain", "Connection": "close"}
             self.ping_count += 1
             params = urllib.urlencode({'shelly':__version__,
                                        'pyShelly':self.pyShelly.version(), 
@@ -268,12 +363,19 @@ class Shelly(Plugin):
         }
 
     def matchRequest(self, plugin, path):
-        logger.debug("MATCH %s %s", plugin, path)
+        LOGGER.debug("MATCH %s %s", plugin, path)
         if plugin != 'shelly':
             return False
         #if path in ['reset', 'state']:
         #return True
         return True
+
+    def _getConfig(self):
+        settings = Settings(CONFIG)
+        return {
+            'cloud_server' : settings["cloud_server"],
+            'cloud_auth_key' : settings["cloud_auth_key"]
+        }
 
     def _getData(self, all_devs=False):
         shellyDevices = \
@@ -290,6 +392,7 @@ class Shelly(Plugin):
                     buttons["up"]=True
                     buttons["down"]=True
                     buttons["stop"]=True
+                buttons["firmware"]=getattr(d,"has_firmware_update", False)
                 dev = {'id': d.id(),
                        'localid': d.localId(),
                        'name': d.name(),
@@ -314,28 +417,72 @@ class Shelly(Plugin):
                         "%.1f" % float(values[1][0]['value'])
                 if 2 in values:
                     sensors['hum'] = \
-                        "%.0f" % float(values[2][0]['value'])
+                        "%.1f" % float(values[2][0]['value'])
                 if 256 in values:
                     sensors['consumption'] = \
-                        "%.2f" % float(values[256][0]['value'])
+                        "%.1f" % float(values[256][0]['value'])
                 if sensors:
                     dev["sensors"] = sensors
                 devices.append(dev)
-            except:
-                logger.exception("Error reading cache")
+            except Exception as ex:
+                LOGGER.exception("Error reading cache")
         devices.sort(key=lambda x: x['name'])
         return {'devices': devices,
-                'pyShellyVer' : self.pyShelly.version(),
+                'pyShellyVer' : self.pyShelly.version() if self.pyShelly else "",
                 'ver' : __version__,
                 'id': self.uuid
                 }
 
     def refreshClient(self):
-        Server(self.context).webSocketSend('shelly', 'refresh', self._getData())
+        data = self._getData()
+        if self.last_sent_data != data:
+            self.last_sent_data = data
+            Server(self.context).webSocketSend('shelly', 'refresh', data)
 
     def handleRequest(self, plugin, path, __params, **__kwargs):
         if path == 'list':
             return WebResponseJson(self._getData())
+
+        if path == "config":
+            if __params:
+                settings = Settings(CONFIG)
+                for param in __params:
+                    if param in ['cloud_server', 'cloud_auth_key']:
+                        settings[param]=__params[param]
+                self._read_settings()
+            return WebResponseJson(self._getConfig())
+
+        if path == 'devices':            
+            devices = list(map(lambda d: {                
+                'id':d.id,
+                'name': d.friendly_name(),
+                'unit_id':d.unit_id,
+                'type':d.type,
+                'ip_addr': d.ip_addr,
+                'is_device': d.is_device,
+                'is_sensor':d.is_sensor,
+                'sub_name':d.sub_name,
+                'state_values':d.state_values,
+                'state':d.state,
+                'device_type':d.device_type,
+                'device_sub_type':d.device_sub_type,
+                'device_nr': d.device_nr,
+                'master_unit': d.master_unit,
+                'ext_sensor': d.ext_sensor,
+                'info_values': d.info_values,
+                'friendly_name': d.friendly_name()
+            }, self.pyShelly.devices))
+            return WebResponseJson(devices)
+
+        if path == 'blocks':
+            blocks = list(map(lambda d: {                
+                'id':d.id,
+                'unit_id':d.unit_id,
+                'type':d.type,
+                'ip_addr': d.ip_addr,
+                'info_values': d.info_values
+            }, self.pyShelly.blocks.values()))
+            return WebResponseJson(blocks)
 
         if path == 'dump':
             shellyDevices = self.deviceManager.retrieveDevices()
@@ -356,8 +503,8 @@ class Shelly(Plugin):
                                shellyDevices))
             return WebResponseJson({'devices': devices })
 
-        if path in ['turnon', 'turnoff', 'up', 'down', 'stop']:
-            logger.info('Request ' + path)
+        if path in ['turnon', 'turnoff', 'up', 'down', 'stop', 'firmware_update']:
+            LOGGER.info('Request ' + path)
             id = __params['id']
             device = self.deviceManager.device(int(id))
             if path == 'turnon':
@@ -373,6 +520,9 @@ class Shelly(Plugin):
                 device.dev.down()
             elif path == 'stop':
                 device.dev.stop()
+            elif path == 'firmware_update':
+                if device.dev.block:
+                    device.dev.block.update_firmware()
             return WebResponseJson({})
 
         if path == "rgb":
@@ -389,7 +539,8 @@ class Shelly(Plugin):
             id = __params['id']
             name = __params['name']
             device = self.deviceManager.device(int(id))
-            device.setName(name)
+            device.local_name = name            
+            device.update_name()
             self.refreshClient()
             return WebResponseJson({})
 
@@ -404,7 +555,7 @@ class Shelly(Plugin):
             return WebResponseJson({})
 
         if path == "addMember":
-            logger.debug("Add membership")
+            LOGGER.debug("Add membership")
             import socket
             import struct
             mreq = struct.pack("=4sl",
@@ -416,7 +567,7 @@ class Shelly(Plugin):
             return WebResponseJson({})
 
         if path == "dropMember":
-            logger.debug("Drop membership")
+            LOGGER.debug("Drop membership")
             import socket
             import struct
             mreq = struct.pack("=4sl",
@@ -432,8 +583,10 @@ class Shelly(Plugin):
             return WebResponseJson({'msg':'init socket done'})
 
     def _device_added(self, dev, code):
-        logger.info('Add device ' + dev.id + ' ' + str(code))
-        if dev.device_type != "POWERMETER" and dev.device_type != "SWITCH":
+        LOGGER.info('Add device ' + dev.id + ' ' + str(code))
+        if (dev.device_type != "POWERMETER" and dev.device_type != "SWITCH" \
+            and dev.device_sub_type != "humidity") \
+           or dev.master_unit or dev.major_unit:
             device = ShellyDevice(dev, self)
             self.deviceManager.addDevice(device)
 
@@ -442,7 +595,11 @@ class Shelly(Plugin):
             self.pyShelly.close()
             self.pyShelly = None
         if self.stop_ping_loop is not None:
-            self.stop_ping_loop.set()    
+            self.stop_ping_loop.set()  
+
+    def tearDown(self):
+		deviceManager = DeviceManager(self.context)
+		deviceManager.removeDevicesByType('shelly')  
 
 class ShellyLogger(StreamHandler):
     def __init__(self, uuid):
@@ -457,7 +614,7 @@ class ShellyLogger(StreamHandler):
                 msg = self.format(record)
                 self.cnt += 1
                 headers = {"Content-type": "application/x-www-form-urlencoded",
-                           "Accept": "text/plain"}
+                           "Accept": "text/plain", "Connection": "close"}
                 params = urllib.urlencode({
                     'level':record.levelno,
                     'uuid':self.uuid,

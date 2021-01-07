@@ -77,3 +77,19 @@
     padding: 3px;
     color: gray;
 }
+.shellyCanvas .button_row .mdl-button {
+    padding: 0 2px !important;
+    min-width: 36px !important;
+}
+.shellyCanvas .button_row {
+    white-space: nowrap;
+    text-align: right;
+}
+.shellyCanvas .type_name {
+    color: gray;
+    font-size: 0.7em;
+}
+.shellyCanvas .small {
+    color: gray;
+    font-size: 0.5em;
+}
