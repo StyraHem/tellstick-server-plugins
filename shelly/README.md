@@ -20,6 +20,8 @@ support on/off, dimming, rgb, sensors (power, temp etc)
 - Shelly DIMMER
 - Shelly DIMMER/SL
 
+Only for firmware < 1.8.x, new release comming soon.
+
 ## Requirement
 This plugin need Tellstick version 1.3.1. This version is currently in beta and you need to switch to beta under settings on your Tellstick.
 
