@@ -15,7 +15,7 @@ from pyShelly import pyShelly
 import threading
 
 __name__ = 'Shelly'
-__version__ = '0.2.0b7'
+__version__ = '0.2.0b8'
 
 PING_INTERVAL = 3600
 LOG_LEVEL = 100
