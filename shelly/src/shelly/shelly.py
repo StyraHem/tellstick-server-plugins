@@ -15,7 +15,7 @@ from pyShelly import pyShelly
 import threading
 
 __name__ = 'Shelly'
-__version__ = '0.2.0b8'
+__version__ = '0.2.0b9'
 
 PING_INTERVAL = 3600
 LOG_LEVEL = 100
@@ -140,7 +140,17 @@ class ShellyDevice(Device):
             failure(Device.FAILED_STATUS_UNKNOWN)
         success()
 
-    def _setState(self, state, value=None):        
+    def _setState(self, state, value=None): 
+
+        #This is a temporary fix for a bug in 1.3.1, fixed in 1.3.2
+        if not hasattr(self, 'normalizeDeviceEvent'):
+            if value is None:
+                value = ''
+            if ((self._state == state or state in (Device.RGB, Device.THERMOSTAT))
+                and self._stateValues.get(str(state), None) == value):
+                return
+        #######################################
+
         self.setState(state, value, onlyUpdateIfChanged=True)
     
     def _setSensorValue(self, values, valueType, value, scale):        
@@ -282,6 +292,9 @@ class Shelly(Plugin):
         pys.update_status_interval = timedelta(seconds=30)
         pys.only_device_id = settings["only_device_id"]
         pys.mdns_enabled = False #settings.get('mdns', True)
+
+        if not settings['logger']:
+            LOGGER.setLevel(logging.WARNING)
 
     def _initPyShelly(self):
         try:
