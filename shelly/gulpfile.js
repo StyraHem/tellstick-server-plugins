@@ -2,9 +2,6 @@ var gulp = require('gulp');
 var babel = require("gulp-babel");
 var requirejsOptimize = require('gulp-requirejs-optimize');
 
-gulp.task('default', ['scripts'], function() {
-});
-
 gulp.task('jsx', function () {
   return gulp.src('src/shelly/app/**/*.jsx')
     .pipe(babel({
@@ -18,7 +15,7 @@ gulp.task('js', function () {
     .pipe(gulp.dest('src/shelly/build'));
 });
 
-gulp.task('scripts', ['jsx', 'js'], function () {
+gulp.task('scripts', gulp.series('jsx', 'js', function () {
   return gulp.src('src/shelly/build/shelly/shelly.js')
     .pipe(requirejsOptimize({
       paths: {
@@ -34,8 +31,12 @@ gulp.task('scripts', ['jsx', 'js'], function () {
       name: 'shelly/shelly'
     }))
     .pipe(gulp.dest('src/shelly/htdocs'));
-});
+}));
 
-gulp.task('watch', ['default'], function() {
+gulp.task('default', gulp.series('scripts', function(done) {
+	done();
+}));
+
+gulp.task('watch', gulp.series('default', function() {
   gulp.watch('src/shelly/app/**/*.jsx', ['default']);
-});
+}));
