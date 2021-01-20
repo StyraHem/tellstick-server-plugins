@@ -4,26 +4,59 @@ Shelly plugin for Telldus Tellstick Net/ZNet v1/v2 (white box, Net,ZNet v1, v2)
 Shelly devices will show as a device in Telldus Live and mobile app. It
 support on/off, dimming, rgb, sensors (power, temp etc)
 
-## Supported devices
-- Shelly 1
-- Shelly 1PM
-- Shelly 2
-- Shelly 2.5
-- Shelly 4 PRO
-- Shelly RGBWW
-- Shelly LED
-- Shelly RGBW2
-- Shelly H&T
-- Shelly FLOOD
-- Shelly PLUG
-- Shelly PLUG S
-- Shelly DIMMER
-- Shelly DIMMER/SL
+## Features
 
-Only for firmware < 1.8.x, new release comming soon.
+- Automatically discover all Shelly devices
+- Monitor status (state, temperature, humidity, power, ip, fw etc.)
+- Control (turn on/off, dim, color, effects, up/down etc.)
+- Switch sensors to show status of switch button
+- Works with Shelly default settings, no extra configuration
+- Runs locally, you don't have to add the device to Shelly Cloud
+- Coexists with Shelly Cloud so you can continue to use Shelly Cloud and Shelly apps
+- Using CoAP and REST for communication (not MQTT)
+- Working with both static or dynamic ip addresses on your devices
+- Using events so very fast response (no polling)
+- Device configuration (name)
+- Support firmware update
+- Support proxy to allow Shelly devices in other LANs.
+- Receive device names from Shelly Cloud (cloud_auth_key/cloud_server)
+
+## Devices supported
+- Shelly 1
+- Shelly 1L
+- Shelly 1PM
+- Temperature addon for Shelly 1(PM)
+- Shelly 2 (relay or roller mode)
+- Shelly 2.5 (relay or roller mode)
+- Shelly 2LED (not verified)
+- Shelly 3EM
+- Shelly 4
+- Shelly Air
+- Shelly Bulb
+- Shelly Button-1
+- Shelly Duo
+- Shelly Duo GU10
+- Shelly Dimmer / Dimmer SL
+- Shelly Dimmer 2
+- Shelly Door/Window
+- Shelly Door/Window 2
+- Shelly EM
+- Shelly Flood
+- Shelly Gas
+- Shelly H&T
+- Shelly i3
+- Shelly Plug
+- Shelly Plug S
+- Shelly Plug US
+- Shelly RGBW2 (rgb or 4 channels)
+- Shelly RGBWW
+- Shelly UNI
+- Shelly Vintage
+
+Full support for all firmware versions.
 
 ## Requirement
-This plugin need Tellstick version 1.3.1. This version is currently in beta and you need to switch to beta under settings on your Tellstick.
+This plugin need Tellstick version 1.3.1.
 
 ## Installation
 [Se wiki pages (only swedish)](https://github.com/StyraHem/tellstick-server-plugins/wiki/Shelly-plugin-f%C3%B6r-Telldus-Tellstick)
